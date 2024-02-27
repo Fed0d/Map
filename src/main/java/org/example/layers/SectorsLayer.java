@@ -1,11 +1,9 @@
 package org.example.layers;
 
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
-import com.bbn.openmap.omGraphics.OMEllipse;
-import com.bbn.openmap.omGraphics.OMGraphic;
-import com.bbn.openmap.omGraphics.OMGraphicList;
-import com.bbn.openmap.omGraphics.OMPoint;
+import com.bbn.openmap.omGraphics.*;
 import com.bbn.openmap.proj.coords.LatLonPoint;
+import javafx.scene.shape.Ellipse;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -59,23 +57,21 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                     addPanel.add(radiusYField, "wrap");
                     JButton addSectorButton = new JButton("Добавить");
                     addSectorButton.addActionListener(actionEvent1 -> {
+                        // Добавить реализацию сектора
                         String name = nameField.getText();
                         double x = Double.parseDouble(xField.getText());
                         double y = Double.parseDouble(yField.getText());
                         LatLonPoint latLonPoint = new LatLonPoint.Double(y, x);
-                        int radiusX = Integer.parseInt(radiusXField.getText());
-                        int radiusY = Integer.parseInt(radiusYField.getText());
-                        OMEllipse ellipse = new OMEllipse(latLonPoint, radiusX, radiusY, 0);
-                        ellipse.setLinePaint(Color.RED);
-                        ellipse.setFillPaint(Color.RED);
-                        ellipse.setLineType(OMGraphic.LINETYPE_RHUMB);
+                        double radiusX = Double.parseDouble(radiusXField.getText());
+                        double radiusY = Double.parseDouble(radiusYField.getText());
                         if (getList() == null)
                             setList(new OMGraphicList());
-                        getList().add(ellipse);
+
                     });
                     addPanel.add(addSectorButton, "span, align center");
                     addFrame.add(addPanel);
                     addFrame.pack();
+                    addFrame.setResizable(false);
                     addFrame.setVisible(true);
                 }
             });

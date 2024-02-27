@@ -1,10 +1,23 @@
 package org.example.objects;
 
-import com.bbn.openmap.omGraphics.OMPoint;
+import com.bbn.openmap.omGraphics.OMRaster;
 
-public class Point extends OMPoint {
+import javax.swing.*;
+
+public class Point extends OMRaster {
     private String name;
-    private double latitude;
-    private double longitude;
-    private double course;
+
+    public Point(String name, double latitude, double longitude, double course) {
+        super(latitude, longitude, new ImageIcon("src/main/resources/images/point.png"));
+        setRotationAngle(course);
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

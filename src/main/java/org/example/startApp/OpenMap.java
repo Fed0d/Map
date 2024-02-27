@@ -11,6 +11,8 @@ import java.io.IOException;
 
 /**
  * A simple OpenMap application.
+ *
+ * @author Dmitriy Samorodov
  */
 public class OpenMap {
     /****
