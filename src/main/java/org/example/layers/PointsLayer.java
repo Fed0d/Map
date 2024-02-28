@@ -2,24 +2,46 @@ package org.example.layers;
 
 import com.bbn.openmap.event.SelectMouseMode;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
-import com.bbn.openmap.layer.policy.BufferedImageRenderPolicy;
 import com.bbn.openmap.layer.policy.StandardPCPolicy;
 import com.bbn.openmap.omGraphics.*;
 import net.miginfocom.swing.MigLayout;
 import org.example.objects.Point;
-import org.example.objects.Polygon;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.image.Raster;
+import java.beans.PropertyChangeSupport;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * A layer for displaying points on the map.
+ */
 public class PointsLayer extends OMGraphicHandlerLayer {
+    /**
+     * The main panel.
+     */
     private JPanel mainPanel = null;
+    /**
+     * The add frame.
+     */
     private JFrame addFrame = new JFrame();
+    /**
+     * The edit frame.
+     */
     private JFrame editFrame = new JFrame();
+    private final DecimalFormat decimalFormat = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
+    private int pointCounter = 0;
+    private static final PropertyChangeSupport pcs = new PropertyChangeSupport(PointsLayer.class);
 
+    /**
+     * Create a new PointsLayer.
+     */
     public PointsLayer() {
         setName("Points Layer");
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
@@ -34,6 +56,12 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return true;
     }
 
+    /**
+     * Get the tooltip text for the given OMGraphic.
+     *
+     * @param omg the OMGraphic to get the tooltip text for.
+     * @return the tooltip text for the given OMGraphic.
+     */
     @Override
     public String getToolTipTextFor(OMGraphic omg) {
         if (omg instanceof Point) {
@@ -42,6 +70,15 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return super.getToolTipTextFor(omg);
     }
 
+    /**
+     * Get the items for the OMGraphicMenu. This method is called when the user
+     * right-clicks on an OMGraphic. The List of Components returned is added to
+     * the OMGraphicMenu, and the OMGraphicMenu is displayed at the mouse
+     * location.
+     *
+     * @param omg the OMGraphic that was right-clicked on.
+     * @return a List of Components to add to the OMGraphicMenu.
+     */
     @Override
     public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
         List<Component> items = new ArrayList<>();
@@ -50,6 +87,8 @@ public class PointsLayer extends OMGraphicHandlerLayer {
             removeItem.addActionListener(actionEvent -> {
                 if (getList() != null) {
                     getList().remove(omg);
+                    pointCounter--;
+                    pcs.firePropertyChange("pointCounter", pointCounter + 1, pointCounter);
                     doPrepare();
                 }
             });
@@ -63,23 +102,30 @@ public class PointsLayer extends OMGraphicHandlerLayer {
 
                     JLabel nameLabel = new JLabel("Название:");
                     editPanel.add(nameLabel);
-                    JTextField nameField = new JTextField(((Point) omg).getName());
+                    JFormattedTextField nameField = new JFormattedTextField(((Point) omg).getName());
+                    nameField.setColumns(10);
                     editPanel.add(nameField, "wrap");
 
                     JLabel coordinatesLabel = new JLabel("Координаты:");
-                    JLabel xLabel = new JLabel("X");
-                    JTextField xField = new JTextField(String.valueOf(((Point) omg).getLat()));
-                    JLabel yLabel = new JLabel("Y");
-                    JTextField yField = new JTextField(String.valueOf(((Point) omg).getLon()));
+                    JLabel latLabel = new JLabel("Lat:");
+                    JFormattedTextField latField = new JFormattedTextField(decimalFormat);
+                    latField.setValue(((Point) omg).getLat());
+                    latField.setColumns(5);
+                    JLabel lonLabel = new JLabel("Lon:");
+                    JFormattedTextField lonField = new JFormattedTextField(decimalFormat);
+                    lonField.setValue(((Point) omg).getLon());
+                    lonField.setColumns(5);
 
                     editPanel.add(coordinatesLabel);
-                    editPanel.add(xLabel, "split 4");
-                    editPanel.add(xField);
-                    editPanel.add(yLabel);
-                    editPanel.add(yField, "wrap");
+                    editPanel.add(latLabel, "split 4");
+                    editPanel.add(latField);
+                    editPanel.add(lonLabel);
+                    editPanel.add(lonField, "wrap");
 
                     JLabel courseLabel = new JLabel("Курс:");
-                    JTextField courseField = new JTextField(String.valueOf(((Point) omg).getRotationAngle()));
+                    JFormattedTextField courseField = new JFormattedTextField(decimalFormat);
+                    courseField.setValue(((Point) omg).getRotationAngle());
+                    courseField.setColumns(5);
 
                     editPanel.add(courseLabel);
                     editPanel.add(courseField, "wrap");
@@ -87,8 +133,8 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                     JButton editButton = new JButton("Изменить");
                     editButton.addActionListener(actionEvent1 -> {
                         ((Point) omg).setName(nameField.getText());
-                        ((Point) omg).setLat(Double.parseDouble(xField.getText()));
-                        ((Point) omg).setLon(Double.parseDouble(yField.getText()));
+                        ((Point) omg).setLat(Double.parseDouble(latField.getText()));
+                        ((Point) omg).setLon(Double.parseDouble(lonField.getText()));
                         ((Point) omg).setRotationAngle(Double.parseDouble(courseField.getText()));
                         doPrepare();
                         editFrame.dispose();
@@ -109,20 +155,16 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return items;
     }
 
-    @Override
-    public synchronized OMGraphicList prepare() {
-        OMGraphicList list = getList();
-        if (list == null) {
-            list = new OMGraphicList();
-            setList(list);
-        }
-        list.generate(getProjection());
-        return list;
-    }
-
     public Component getGUI() {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
+
+            JLabel pointsNumberLabel = new JLabel("Количество точек: ");
+            JLabel pointsCounterLabel = new JLabel(String.valueOf(pointCounter));
+            pcs.addPropertyChangeListener("pointCounter", evt
+                    -> pointsCounterLabel.setText(String.valueOf(pointCounter)));
+            mainPanel.add(pointsNumberLabel);
+            mainPanel.add(pointsCounterLabel, "wrap");
 
             JButton addButton = new JButton("Добавить точку");
             addButton.addActionListener(actionEvent -> {
@@ -139,18 +181,21 @@ public class PointsLayer extends OMGraphicHandlerLayer {
 
                     JLabel coordinatesLabel = new JLabel("Введите координаты:");
                     addPanel.add(coordinatesLabel);
-                    JLabel xLabel = new JLabel("X");
-                    JTextField xField = new JTextField(5);
-                    JLabel yLabel = new JLabel("Y");
-                    JTextField yField = new JTextField(5);
+                    JLabel latLabel = new JLabel("Lat:");
+                    JFormattedTextField latField = new JFormattedTextField(decimalFormat);
+                    latField.setColumns(5);
+                    JLabel lonLabel = new JLabel("Lon:");
+                    JFormattedTextField lonField = new JFormattedTextField(decimalFormat);
+                    lonField.setColumns(5);
 
-                    addPanel.add(xLabel, "split 4");
-                    addPanel.add(xField);
-                    addPanel.add(yLabel);
-                    addPanel.add(yField, "wrap");
+                    addPanel.add(latLabel, "split 4");
+                    addPanel.add(latField);
+                    addPanel.add(lonLabel);
+                    addPanel.add(lonField, "wrap");
 
                     JLabel courseLabel = new JLabel("Введите курс:");
-                    JTextField courseField = new JTextField(5);
+                    JFormattedTextField courseField = new JFormattedTextField(decimalFormat);
+                    courseField.setColumns(5);
 
                     addPanel.add(courseLabel);
                     addPanel.add(courseField, "wrap");
@@ -158,16 +203,18 @@ public class PointsLayer extends OMGraphicHandlerLayer {
 
                     addPointButton.addActionListener(actionEvent1 -> {
                         String name = nameField.getText();
-                        double x = Double.parseDouble(xField.getText());
-                        double y = Double.parseDouble(yField.getText());
+                        double latitude = Double.parseDouble(latField.getText());
+                        double longitude = Double.parseDouble(lonField.getText());
                         double course = Double.parseDouble(courseField.getText());
-                        Point raster = new Point(name, y, x, course);
+                        Point raster = new Point(name, latitude, longitude, course);
 
                         if (getList() == null)
                             setList(new OMGraphicList());
 
                         getList().add(raster);
                         doPrepare();
+                        pointCounter++;
+                        pcs.firePropertyChange("pointCounter", pointCounter - 1, pointCounter);
                         addFrame.dispose();
                     });
 
@@ -180,8 +227,81 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                 }
             });
             mainPanel.add(addButton, "wrap, span, align center");
+
+            JButton addPointsFromCSVButton = new JButton("Добавить точки из CSV");
+            addPointsFromCSVButton.addActionListener(actionEvent -> {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+                fileChooser.setAcceptAllFileFilterUsed(false);
+                int ret = fileChooser.showDialog(null, "Открыть файл");
+                if (ret == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    addPointsFromCSV(file.getAbsolutePath());
+                    doPrepare();
+                }
+            });
+
+            mainPanel.add(addPointsFromCSVButton, "wrap, span, align center");
+
+            JButton savePointsToCSVButton = new JButton("Сохранить точки в CSV");
+            savePointsToCSVButton.addActionListener(actionEvent -> {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+                fileChooser.setAcceptAllFileFilterUsed(false);
+                int ret = fileChooser.showDialog(null, "Сохранить файл");
+                if (ret == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    savePointsToCSV(file.getAbsolutePath());
+                }
+            });
+
+            mainPanel.add(savePointsToCSVButton, "wrap, span, align center");
         }
         return mainPanel;
     }
 
+    private void addPointsFromCSV(String path) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
+            String str;
+            List<String> features = new ArrayList<>();
+            OMGraphicList points = new OMGraphicList();
+            bufferedReader.readLine();
+            while (bufferedReader.ready()) {
+                str = bufferedReader.readLine();
+                features.addAll(Arrays.asList(str.split(";")));
+
+                if (features.isEmpty())
+                    break;
+
+                String name = features.get(0);
+                double latitude = Double.parseDouble(features.get(1));
+                double longitude = Double.parseDouble(features.get(2));
+                double course = Double.parseDouble(features.get(3));
+
+                features.clear();
+                points.add(new Point(name, latitude, longitude, course));
+                pointCounter++;
+            }
+            if (getList() == null)
+                setList(new OMGraphicList());
+            getList().addAll(points);
+            pcs.firePropertyChange("pointCounter", pointCounter - points.size(), pointCounter);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void savePointsToCSV(String path) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
+            bufferedWriter.write("Название;Широта;Долгота;Курс\n");
+            for (OMGraphic omGraphic : getList())
+                if (omGraphic instanceof Point) {
+                    Point point = (Point) omGraphic;
+                    bufferedWriter.write(point.getName() + ";" + point.getLat() + ";" + point.getLon() + ";"
+                            + point.getRotationAngle() + "\n");
+                }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
