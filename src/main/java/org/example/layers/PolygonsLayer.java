@@ -4,12 +4,23 @@ import com.bbn.openmap.layer.OMGraphicHandlerLayer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
+/**
+ * The Polygons layer.
+ */
 public class PolygonsLayer extends OMGraphicHandlerLayer {
+    /**
+     * The Panel.
+     */
     private JPanel panel = null;
+    /**
+     * The Add frame.
+     */
     private JFrame addFrame = new JFrame();
 
+    /**
+     * Instantiates a new Polygons layer.
+     */
     public Component getGUI() {
         if (panel == null) {
             GridBagLayout gridBag = new GridBagLayout();
@@ -48,6 +59,19 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
         innerPanel.add(label);
         innerPanel.add(textField);
 
+        JButton plusButton = getPlusButton(innerPanel);
+
+        innerPanel.add(plusButton);
+        innerPanel.add(button);
+
+        addFrame.getContentPane().add(innerPanel);
+
+        addFrame.setLocationRelativeTo(null);
+        addFrame.setVisible(true);
+    }
+
+
+    private static JButton getPlusButton(JPanel innerPanel) {
         JButton plusButton = new JButton("+");
         plusButton.addActionListener(actionEvent -> {
             JPanel coordinatePanel = new JPanel();
@@ -72,13 +96,6 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
             innerPanel.revalidate();
             innerPanel.repaint();
         });
-
-        innerPanel.add(plusButton);
-        innerPanel.add(button);
-
-        addFrame.getContentPane().add(innerPanel);
-
-        addFrame.setLocationRelativeTo(null);
-        addFrame.setVisible(true);
+        return plusButton;
     }
 }

@@ -7,9 +7,20 @@ import org.hibernate.SessionFactory;
 
 import java.util.List;
 
+/**
+ * The Point manager.
+ */
 public class PointManager {
+    /**
+     * The Session factory.
+     */
     private static final SessionFactory sessionFactory = OpenMap.getSessionFactory();
 
+    /**
+     * Get all points list.
+     *
+     * @return the list
+     */
     public static List<Point> getAllPoints() {
         try (Session session = sessionFactory.openSession()) {
             List<Point> points = session.createQuery("from Point", Point.class).list();
@@ -22,6 +33,11 @@ public class PointManager {
         }
     }
 
+    /**
+     * Add point.
+     *
+     * @param point the point
+     */
     public static void addPoint(Point point) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -30,6 +46,11 @@ public class PointManager {
         }
     }
 
+    /**
+     * Remove point.
+     *
+     * @param point the point
+     */
     public static void removePoint(Point point) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -38,6 +59,11 @@ public class PointManager {
         }
     }
 
+    /**
+     * Update point.
+     *
+     * @param point the point
+     */
     public static void updatePoint(Point point) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
@@ -46,6 +72,11 @@ public class PointManager {
         }
     }
 
+    /**
+     * Add all points.
+     *
+     * @param points the points
+     */
     public static void addAllPoints(List<Point> points) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();

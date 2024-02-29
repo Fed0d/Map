@@ -37,8 +37,17 @@ public class PointsLayer extends OMGraphicHandlerLayer {
      * The edit frame.
      */
     private JFrame editFrame = new JFrame();
+    /**
+     * The decimal format.
+     */
     private final DecimalFormat decimalFormat = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
+    /**
+     * The point counter.
+     */
     private int pointCounter = 0;
+    /**
+     * The property change support.
+     */
     private static final PropertyChangeSupport pcs = new PropertyChangeSupport(PointsLayer.class);
 
     /**
@@ -50,6 +59,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         setMouseModeIDsForEvents(new String[]{SelectMouseMode.modeID});
     }
 
+    /**
+     * Get the initial list of points.
+     *
+     * @return the initial list of points
+     */
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
         List<Point> points = PointManager.getAllPoints();
@@ -58,6 +72,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return omList;
     }
 
+    /**
+     * Prepare the layer.
+     *
+     * @return the OMGraphicList
+     */
     @Override
     public synchronized OMGraphicList prepare() {
         OMGraphicList list = getList();
@@ -178,6 +197,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return items;
     }
 
+    /**
+     * Get the GUI for this layer.
+     *
+     * @return the GUI for this layer.
+     */
     public Component getGUI() {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
@@ -203,6 +227,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return mainPanel;
     }
 
+    /**
+     * Get the save points to CSV button.
+     *
+     * @return the save points to CSV button
+     */
     private JButton getSavePointsToCSVButton() {
         JButton savePointsToCSVButton = new JButton("Сохранить точки в CSV");
         savePointsToCSVButton.addActionListener(actionEvent -> {
@@ -218,6 +247,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return savePointsToCSVButton;
     }
 
+    /**
+     * Get the add points from CSV button.
+     *
+     * @return the add points from CSV button
+     */
     private JButton getAddPointsFromCSVButton() {
         JButton addPointsFromCSVButton = new JButton("Добавить точки из CSV");
         addPointsFromCSVButton.addActionListener(actionEvent -> {
@@ -234,6 +268,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return addPointsFromCSVButton;
     }
 
+    /**
+     * Get the add button.
+     *
+     * @return the add button
+     */
     private JButton getAddButton() {
         JButton addButton = new JButton("Добавить точку");
         addButton.addActionListener(actionEvent -> {
@@ -297,6 +336,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return addButton;
     }
 
+    /**
+     * Add points from the given CSV file.
+     *
+     * @param path the path to the CSV file
+     */
     private void addPointsFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String str;
@@ -327,6 +371,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         }
     }
 
+    /**
+     * Save points to the given CSV file.
+     *
+     * @param path the path to the CSV file
+     */
     private void savePointsToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
             bufferedWriter.write("Название;Широта;Долгота;Курс\n");

@@ -18,12 +18,19 @@ import java.io.IOException;
  * @author Dmitriy Samorodov
  */
 public class OpenMap {
-    /****
+    /**
      * The map panel.
      */
     private MapPanel mapPanel;
+    /**
+     * The session factory.
+     */
     private static SessionFactory sessionFactory;
-
+    /**
+     * Get the session factory.
+     *
+     * @return the session factory
+     */
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
@@ -37,7 +44,7 @@ public class OpenMap {
         sessionFactory = new Configuration()
                 .addAnnotatedClass(Point.class)
                 .buildSessionFactory();
-        SwingUtilities.invokeLater(() -> create("./map.properties").showInFrame());
+        SwingUtilities.invokeLater(() -> create("./src/main/resources/map.properties").showInFrame());
     }
 
     /***
