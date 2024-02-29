@@ -2,9 +2,11 @@ package org.example.layers;
 
 import com.bbn.openmap.event.SelectMouseMode;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
+import com.bbn.openmap.layer.policy.BufferedImageRenderPolicy;
 import com.bbn.openmap.layer.policy.StandardPCPolicy;
 import com.bbn.openmap.omGraphics.*;
 import net.miginfocom.swing.MigLayout;
+import org.example.managers.PointManager;
 import org.example.objects.Point;
 
 import javax.swing.*;
@@ -43,9 +45,28 @@ public class PointsLayer extends OMGraphicHandlerLayer {
      * Create a new PointsLayer.
      */
     public PointsLayer() {
-        setName("Points Layer");
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
+        setRenderPolicy(new BufferedImageRenderPolicy());
         setMouseModeIDsForEvents(new String[]{SelectMouseMode.modeID});
+    }
+
+    public OMGraphicList init() {
+        OMGraphicList omList = new OMGraphicList();
+        List<Point> points = PointManager.getAllPoints();
+        pointCounter += points.size();
+        omList.addAll(points);
+        return omList;
+    }
+
+    @Override
+    public synchronized OMGraphicList prepare() {
+        OMGraphicList list = getList();
+        if (list == null) {
+            list = init();
+        }
+        list.generate(getProjection());
+
+        return list;
     }
 
     public boolean isHighlightable(OMGraphic omg) {
@@ -86,6 +107,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
             JMenuItem removeItem = new JMenuItem("Удалить");
             removeItem.addActionListener(actionEvent -> {
                 if (getList() != null) {
+                    PointManager.removePoint((Point) omg);
                     getList().remove(omg);
                     pointCounter--;
                     pcs.firePropertyChange("pointCounter", pointCounter + 1, pointCounter);
@@ -133,9 +155,10 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                     JButton editButton = new JButton("Изменить");
                     editButton.addActionListener(actionEvent1 -> {
                         ((Point) omg).setName(nameField.getText());
-                        ((Point) omg).setLat(Double.parseDouble(latField.getText()));
-                        ((Point) omg).setLon(Double.parseDouble(lonField.getText()));
-                        ((Point) omg).setRotationAngle(Double.parseDouble(courseField.getText()));
+                        ((Point) omg).setLatitude(Double.parseDouble(latField.getText()));
+                        ((Point) omg).setLongitude(Double.parseDouble(lonField.getText()));
+                        ((Point) omg).setCourse(Double.parseDouble(courseField.getText()));
+                        PointManager.updatePoint((Point) omg);
                         doPrepare();
                         editFrame.dispose();
                     });
@@ -159,112 +182,126 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
 
-            JLabel pointsNumberLabel = new JLabel("Количество точек: ");
+            JLabel pointsNumberLabel = new JLabel("Количество точек:");
             JLabel pointsCounterLabel = new JLabel(String.valueOf(pointCounter));
             pcs.addPropertyChangeListener("pointCounter", evt
                     -> pointsCounterLabel.setText(String.valueOf(pointCounter)));
             mainPanel.add(pointsNumberLabel);
             mainPanel.add(pointsCounterLabel, "wrap");
 
-            JButton addButton = new JButton("Добавить точку");
-            addButton.addActionListener(actionEvent -> {
-                if (!addFrame.isVisible()) {
-                    addFrame = new JFrame(("Добавление точки"));
-                    addFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-
-                    JPanel addPanel = new JPanel(new MigLayout());
-                    JTextField nameField = new JTextField(10);
-                    JLabel nameLabel = new JLabel("Введите название точки:");
-
-                    addPanel.add(nameLabel);
-                    addPanel.add(nameField, "wrap");
-
-                    JLabel coordinatesLabel = new JLabel("Введите координаты:");
-                    addPanel.add(coordinatesLabel);
-                    JLabel latLabel = new JLabel("Lat:");
-                    JFormattedTextField latField = new JFormattedTextField(decimalFormat);
-                    latField.setColumns(5);
-                    JLabel lonLabel = new JLabel("Lon:");
-                    JFormattedTextField lonField = new JFormattedTextField(decimalFormat);
-                    lonField.setColumns(5);
-
-                    addPanel.add(latLabel, "split 4");
-                    addPanel.add(latField);
-                    addPanel.add(lonLabel);
-                    addPanel.add(lonField, "wrap");
-
-                    JLabel courseLabel = new JLabel("Введите курс:");
-                    JFormattedTextField courseField = new JFormattedTextField(decimalFormat);
-                    courseField.setColumns(5);
-
-                    addPanel.add(courseLabel);
-                    addPanel.add(courseField, "wrap");
-                    JButton addPointButton = new JButton("Добавить");
-
-                    addPointButton.addActionListener(actionEvent1 -> {
-                        String name = nameField.getText();
-                        double latitude = Double.parseDouble(latField.getText());
-                        double longitude = Double.parseDouble(lonField.getText());
-                        double course = Double.parseDouble(courseField.getText());
-                        Point raster = new Point(name, latitude, longitude, course);
-
-                        if (getList() == null)
-                            setList(new OMGraphicList());
-
-                        getList().add(raster);
-                        doPrepare();
-                        pointCounter++;
-                        pcs.firePropertyChange("pointCounter", pointCounter - 1, pointCounter);
-                        addFrame.dispose();
-                    });
-
-                    addPanel.add(addPointButton, "wrap, span, align center");
-
-                    addFrame.add(addPanel);
-                    addFrame.pack();
-                    addFrame.setResizable(false);
-                    addFrame.setVisible(true);
-                }
-            });
+            JButton addButton = getAddButton();
             mainPanel.add(addButton, "wrap, span, align center");
 
-            JButton addPointsFromCSVButton = new JButton("Добавить точки из CSV");
-            addPointsFromCSVButton.addActionListener(actionEvent -> {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-                fileChooser.setAcceptAllFileFilterUsed(false);
-                int ret = fileChooser.showDialog(null, "Открыть файл");
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    File file = fileChooser.getSelectedFile();
-                    addPointsFromCSV(file.getAbsolutePath());
-                    doPrepare();
-                }
-            });
+            JButton addPointsFromCSVButton = getAddPointsFromCSVButton();
 
             mainPanel.add(addPointsFromCSVButton, "wrap, span, align center");
 
-            JButton savePointsToCSVButton = new JButton("Сохранить точки в CSV");
-            savePointsToCSVButton.addActionListener(actionEvent -> {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-                fileChooser.setAcceptAllFileFilterUsed(false);
-                int ret = fileChooser.showDialog(null, "Сохранить файл");
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    File file = fileChooser.getSelectedFile();
-                    savePointsToCSV(file.getAbsolutePath());
-                }
-            });
+            JButton savePointsToCSVButton = getSavePointsToCSVButton();
 
             mainPanel.add(savePointsToCSVButton, "wrap, span, align center");
         }
         return mainPanel;
     }
 
+    private JButton getSavePointsToCSVButton() {
+        JButton savePointsToCSVButton = new JButton("Сохранить точки в CSV");
+        savePointsToCSVButton.addActionListener(actionEvent -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            int ret = fileChooser.showDialog(null, "Сохранить файл");
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                savePointsToCSV(file.getAbsolutePath());
+            }
+        });
+        return savePointsToCSVButton;
+    }
+
+    private JButton getAddPointsFromCSVButton() {
+        JButton addPointsFromCSVButton = new JButton("Добавить точки из CSV");
+        addPointsFromCSVButton.addActionListener(actionEvent -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            int ret = fileChooser.showDialog(null, "Открыть файл");
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                addPointsFromCSV(file.getAbsolutePath());
+                doPrepare();
+            }
+        });
+        return addPointsFromCSVButton;
+    }
+
+    private JButton getAddButton() {
+        JButton addButton = new JButton("Добавить точку");
+        addButton.addActionListener(actionEvent -> {
+            if (!addFrame.isVisible()) {
+                addFrame = new JFrame(("Добавление точки"));
+                addFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
+                JPanel addPanel = new JPanel(new MigLayout());
+                JTextField nameField = new JTextField(10);
+                JLabel nameLabel = new JLabel("Введите название точки:");
+
+                addPanel.add(nameLabel);
+                addPanel.add(nameField, "wrap");
+
+                JLabel coordinatesLabel = new JLabel("Введите координаты:");
+                addPanel.add(coordinatesLabel);
+                JLabel latLabel = new JLabel("Lat:");
+                JFormattedTextField latField = new JFormattedTextField(decimalFormat);
+                latField.setColumns(5);
+                JLabel lonLabel = new JLabel("Lon:");
+                JFormattedTextField lonField = new JFormattedTextField(decimalFormat);
+                lonField.setColumns(5);
+
+                addPanel.add(latLabel, "split 4");
+                addPanel.add(latField);
+                addPanel.add(lonLabel);
+                addPanel.add(lonField, "wrap");
+
+                JLabel courseLabel = new JLabel("Введите курс:");
+                JFormattedTextField courseField = new JFormattedTextField(decimalFormat);
+                courseField.setColumns(5);
+
+                addPanel.add(courseLabel);
+                addPanel.add(courseField, "wrap");
+                JButton addPointButton = new JButton("Добавить");
+
+                addPointButton.addActionListener(actionEvent1 -> {
+                    String name = nameField.getText();
+                    double latitude = Double.parseDouble(latField.getText());
+                    double longitude = Double.parseDouble(lonField.getText());
+                    double course = Double.parseDouble(courseField.getText());
+                    Point raster = new Point(name, latitude, longitude, course);
+
+                    PointManager.addPoint(raster);
+
+                    getList().add(raster);
+                    doPrepare();
+                    pointCounter++;
+                    pcs.firePropertyChange("pointCounter", pointCounter - 1, pointCounter);
+                    addFrame.dispose();
+                });
+
+                addPanel.add(addPointButton, "wrap, span, align center");
+
+                addFrame.add(addPanel);
+                addFrame.pack();
+                addFrame.setResizable(false);
+                addFrame.setVisible(true);
+            }
+        });
+        return addButton;
+    }
+
     private void addPointsFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String str;
             List<String> features = new ArrayList<>();
-            OMGraphicList points = new OMGraphicList();
+            List<Point> points = new ArrayList<>();
             bufferedReader.readLine();
             while (bufferedReader.ready()) {
                 str = bufferedReader.readLine();
@@ -282,8 +319,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                 points.add(new Point(name, latitude, longitude, course));
                 pointCounter++;
             }
-            if (getList() == null)
-                setList(new OMGraphicList());
+            PointManager.addAllPoints(points);
             getList().addAll(points);
             pcs.firePropertyChange("pointCounter", pointCounter - points.size(), pointCounter);
         } catch (IOException e) {

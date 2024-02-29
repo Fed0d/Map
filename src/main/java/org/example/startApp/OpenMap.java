@@ -5,6 +5,9 @@ import com.bbn.openmap.PropertyHandler;
 import com.bbn.openmap.gui.MapPanel;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.OverlayMapPanel;
+import org.example.objects.Point;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -19,12 +22,21 @@ public class OpenMap {
      * The map panel.
      */
     private MapPanel mapPanel;
+    private static SessionFactory sessionFactory;
 
-    /***
-     * Main method to create and show the OpenMap instance.
-     * @param args the command-line arguments
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    /**
+     * The main method.
+     *
+     * @param args the command line arguments
      */
     public static void main(String[] args) {
+        sessionFactory = new Configuration()
+                .addAnnotatedClass(Point.class)
+                .buildSessionFactory();
         SwingUtilities.invokeLater(() -> create("./map.properties").showInFrame());
     }
 
