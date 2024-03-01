@@ -84,7 +84,6 @@ public class PointsLayer extends OMGraphicHandlerLayer {
             list = init();
         }
         list.generate(getProjection());
-
         return list;
     }
 
