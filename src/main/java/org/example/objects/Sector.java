@@ -125,6 +125,7 @@ public class Sector extends OMArc {
 
     public void setColor(String color) {
         this.color = color;
+        setFillPaint(Color.decode(color));
     }
 
     public double getCourse() {

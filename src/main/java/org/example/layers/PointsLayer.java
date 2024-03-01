@@ -103,9 +103,8 @@ public class PointsLayer extends OMGraphicHandlerLayer {
      */
     @Override
     public String getToolTipTextFor(OMGraphic omg) {
-        if (omg instanceof Point) {
+        if (omg instanceof Point)
             return ((Point) omg).getName();
-        }
         return super.getToolTipTextFor(omg);
     }
 
@@ -121,6 +120,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
     @Override
     public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
         List<Component> items = new ArrayList<>();
+
         if (omg instanceof Point) {
             JMenuItem removeItem = new JMenuItem("Удалить");
             removeItem.addActionListener(actionEvent -> {
@@ -364,6 +364,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
             }
             PointManager.addAllPoints(points);
             getList().addAll(points);
+            doPrepare();
             pcs.firePropertyChange("pointCounter", pointCounter - points.size(), pointCounter);
         } catch (IOException e) {
             throw new RuntimeException(e);

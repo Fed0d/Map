@@ -48,4 +48,22 @@ public class SectorManager {
             return sectors;
         }
     }
+
+    public static void addAllSectors(List<Sector> sectors) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            for (Sector sector : sectors) {
+                session.save(sector);
+            }
+            session.getTransaction().commit();
+        }
+    }
+
+    public static void clear() {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.createQuery("delete from Sector").executeUpdate();
+            session.getTransaction().commit();
+        }
+    }
 }
