@@ -6,6 +6,7 @@ import com.bbn.openmap.gui.MapPanel;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.OverlayMapPanel;
 import org.example.objects.Point;
+import org.example.objects.Polygon;
 import org.example.objects.Sector;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -45,6 +46,7 @@ public class OpenMap {
         sessionFactory = new Configuration()
                 .addAnnotatedClass(Point.class)
                 .addAnnotatedClass(Sector.class)
+                .addAnnotatedClass(Polygon.class)
                 .buildSessionFactory();
         SwingUtilities.invokeLater(() -> create("./src/main/resources/map.properties").showInFrame());
     }

@@ -8,9 +8,9 @@ import com.bbn.openmap.omGraphics.*;
 import net.miginfocom.swing.MigLayout;
 import org.example.managers.PointManager;
 import org.example.objects.Point;
+import org.example.tools.Buttons;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -21,62 +21,29 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * A layer for displaying points on the map.
- */
-public class PointsLayer extends OMGraphicHandlerLayer {
-    /**
-     * The main panel.
-     */
+public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
     private JPanel mainPanel = null;
-    /**
-     * The add frame.
-     */
     private JFrame addFrame = new JFrame();
-    /**
-     * The edit frame.
-     */
     private JFrame editFrame = new JFrame();
-    /**
-     * The decimal format.
-     */
     private final DecimalFormat decimalFormat = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
-    /**
-     * The point counter.
-     */
     private int pointCounter = 0;
-    /**
-     * The property change support.
-     */
-    private static final PropertyChangeSupport pcs = new PropertyChangeSupport(PointsLayer.class);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(PointsLayer.class);
+    private final PointManager pointManager = new PointManager();
 
-    /**
-     * Create a new PointsLayer.
-     */
     public PointsLayer() {
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
         setRenderPolicy(new BufferedImageRenderPolicy());
         setMouseModeIDsForEvents(new String[]{SelectMouseMode.modeID});
     }
 
-    /**
-     * Get the initial list of points.
-     *
-     * @return the initial list of points
-     */
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
-        List<Point> points = PointManager.getAllPoints();
+        List<Point> points = pointManager.getAll();
         pointCounter += points.size();
         omList.addAll(points);
         return omList;
     }
 
-    /**
-     * Prepare the layer.
-     *
-     * @return the OMGraphicList
-     */
     @Override
     public synchronized OMGraphicList prepare() {
         OMGraphicList list = getList();
@@ -95,12 +62,6 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return true;
     }
 
-    /**
-     * Get the tooltip text for the given OMGraphic.
-     *
-     * @param omg the OMGraphic to get the tooltip text for.
-     * @return the tooltip text for the given OMGraphic.
-     */
     @Override
     public String getToolTipTextFor(OMGraphic omg) {
         if (omg instanceof Point)
@@ -108,15 +69,6 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return super.getToolTipTextFor(omg);
     }
 
-    /**
-     * Get the items for the OMGraphicMenu. This method is called when the user
-     * right-clicks on an OMGraphic. The List of Components returned is added to
-     * the OMGraphicMenu, and the OMGraphicMenu is displayed at the mouse
-     * location.
-     *
-     * @param omg the OMGraphic that was right-clicked on.
-     * @return a List of Components to add to the OMGraphicMenu.
-     */
     @Override
     public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
         List<Component> items = new ArrayList<>();
@@ -124,13 +76,11 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         if (omg instanceof Point) {
             JMenuItem removeItem = new JMenuItem("Удалить");
             removeItem.addActionListener(actionEvent -> {
-                if (getList() != null) {
-                    PointManager.removePoint((Point) omg);
-                    getList().remove(omg);
-                    pointCounter--;
-                    pcs.firePropertyChange("pointCounter", pointCounter + 1, pointCounter);
-                    doPrepare();
-                }
+                pointManager.remove((Point) omg);
+                getList().remove(omg);
+                pointCounter--;
+                pcs.firePropertyChange("pointCounter", pointCounter + 1, pointCounter);
+                doPrepare();
             });
 
             JMenuItem editItem = new JMenuItem("Изменить");
@@ -176,7 +126,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                         ((Point) omg).setLatitude(Double.parseDouble(latField.getText()));
                         ((Point) omg).setLongitude(Double.parseDouble(lonField.getText()));
                         ((Point) omg).setCourse(Double.parseDouble(courseField.getText()));
-                        PointManager.updatePoint((Point) omg);
+                        pointManager.update((Point) omg);
                         doPrepare();
                         editFrame.dispose();
                     });
@@ -196,11 +146,6 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return items;
     }
 
-    /**
-     * Get the GUI for this layer.
-     *
-     * @return the GUI for this layer.
-     */
     public Component getGUI() {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
@@ -215,63 +160,17 @@ public class PointsLayer extends OMGraphicHandlerLayer {
             JButton addButton = getAddButton();
             mainPanel.add(addButton, "wrap, span, align center");
 
-            JButton addPointsFromCSVButton = getAddPointsFromCSVButton();
+            JButton addPointsFromCSVButton = getAddFromCSVButton(this);
 
             mainPanel.add(addPointsFromCSVButton, "wrap, span, align center");
 
-            JButton savePointsToCSVButton = getSavePointsToCSVButton();
+            JButton savePointsToCSVButton = getSaveToCSVButton();
 
             mainPanel.add(savePointsToCSVButton, "wrap, span, align center");
         }
         return mainPanel;
     }
 
-    /**
-     * Get the save points to CSV button.
-     *
-     * @return the save points to CSV button
-     */
-    private JButton getSavePointsToCSVButton() {
-        JButton savePointsToCSVButton = new JButton("Сохранить точки в CSV");
-        savePointsToCSVButton.addActionListener(actionEvent -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-            fileChooser.setAcceptAllFileFilterUsed(false);
-            int ret = fileChooser.showDialog(null, "Сохранить файл");
-            if (ret == JFileChooser.APPROVE_OPTION) {
-                File file = fileChooser.getSelectedFile();
-                savePointsToCSV(file.getAbsolutePath());
-            }
-        });
-        return savePointsToCSVButton;
-    }
-
-    /**
-     * Get the add points from CSV button.
-     *
-     * @return the add points from CSV button
-     */
-    private JButton getAddPointsFromCSVButton() {
-        JButton addPointsFromCSVButton = new JButton("Добавить точки из CSV");
-        addPointsFromCSVButton.addActionListener(actionEvent -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-            fileChooser.setAcceptAllFileFilterUsed(false);
-            int ret = fileChooser.showDialog(null, "Открыть файл");
-            if (ret == JFileChooser.APPROVE_OPTION) {
-                File file = fileChooser.getSelectedFile();
-                addPointsFromCSV(file.getAbsolutePath());
-                doPrepare();
-            }
-        });
-        return addPointsFromCSVButton;
-    }
-
-    /**
-     * Get the add button.
-     *
-     * @return the add button
-     */
     private JButton getAddButton() {
         JButton addButton = new JButton("Добавить точку");
         addButton.addActionListener(actionEvent -> {
@@ -315,7 +214,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                     double course = Double.parseDouble(courseField.getText());
                     Point raster = new Point(name, latitude, longitude, course);
 
-                    PointManager.addPoint(raster);
+                    pointManager.add(raster);
 
                     getList().add(raster);
                     doPrepare();
@@ -335,12 +234,8 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         return addButton;
     }
 
-    /**
-     * Add points from the given CSV file.
-     *
-     * @param path the path to the CSV file
-     */
-    private void addPointsFromCSV(String path) {
+    @Override
+    public void addFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String str;
             List<String> features = new ArrayList<>();
@@ -362,7 +257,7 @@ public class PointsLayer extends OMGraphicHandlerLayer {
                 points.add(new Point(name, latitude, longitude, course));
                 pointCounter++;
             }
-            PointManager.addAllPoints(points);
+            pointManager.addAll(points);
             getList().addAll(points);
             doPrepare();
             pcs.firePropertyChange("pointCounter", pointCounter - points.size(), pointCounter);
@@ -371,14 +266,10 @@ public class PointsLayer extends OMGraphicHandlerLayer {
         }
     }
 
-    /**
-     * Save points to the given CSV file.
-     *
-     * @param path the path to the CSV file
-     */
-    private void savePointsToCSV(String path) {
+    @Override
+    public void saveToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
-            bufferedWriter.write("Название;Широта;Долгота;Курс\n");
+            bufferedWriter.write("name;latitude;longitude;course\n");
             for (OMGraphic omGraphic : getList())
                 if (omGraphic instanceof Point) {
                     Point point = (Point) omGraphic;

@@ -8,9 +8,10 @@ import com.bbn.openmap.omGraphics.*;
 import net.miginfocom.swing.MigLayout;
 import org.example.managers.SectorManager;
 import org.example.objects.Sector;
+import org.example.tools.Buttons;
+import org.example.tools.ColorComboBoxRenderer;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
@@ -21,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class SectorsLayer extends OMGraphicHandlerLayer {
+public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
     private JPanel mainPanel = null;
     private JFrame addFrame = new JFrame();
     private JFrame editFrame = new JFrame();
@@ -29,6 +30,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
     private final DecimalFormat integerFormat = new DecimalFormat("#");
     private int sectorCounter = 0;
     private static final PropertyChangeSupport pcs = new PropertyChangeSupport(SectorsLayer.class);
+    private final SectorManager sectorManager = new SectorManager();
 
     public SectorsLayer() {
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
@@ -38,7 +40,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
 
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
-        List<Sector> sectors = SectorManager.getAllSectors();
+        List<Sector> sectors = sectorManager.getAll();
         sectorCounter += sectors.size();
         omList.addAll(sectors);
         return omList;
@@ -79,26 +81,26 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
             Sector sector = (Sector) omg;
             JMenuItem removeItem = new JMenuItem("Удалить");
             removeItem.addActionListener(actionEvent -> {
-                SectorManager.removeSector(sector);
+                sectorManager.remove(sector);
                 getList().remove(sector);
                 doPrepare();
             });
 
-            JMenuItem editItem = new JMenuItem("Редактировать");
+            JMenuItem editItem = new JMenuItem("Изменить");
             editItem.addActionListener(actionEvent -> {
                 if (!editFrame.isVisible()) {
-                    editFrame = new JFrame(("Редактирование сектора"));
+                    editFrame = new JFrame(("Изменение сектора"));
                     editFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
                     JPanel editPanel = new JPanel(new MigLayout());
 
                     JTextField nameField = new JTextField(sector.getName(), 10);
-                    JLabel nameLabel = new JLabel("Введите название сектора:");
+                    JLabel nameLabel = new JLabel("Название:");
 
                     editPanel.add(nameLabel);
                     editPanel.add(nameField, "wrap");
 
-                    JLabel coordinatesLabel = new JLabel("Введите координаты центра:");
+                    JLabel coordinatesLabel = new JLabel("Координаты центра:");
                     editPanel.add(coordinatesLabel);
 
                     JLabel xLabel = new JLabel("Lat:");
@@ -117,12 +119,12 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                     editPanel.add(yLabel);
                     editPanel.add(lonField, "wrap");
 
-                    JLabel radiusLabel = new JLabel("Введите X радиус:");
+                    JLabel radiusLabel = new JLabel("X радиус:");
                     JFormattedTextField radiusXField = new JFormattedTextField(integerFormat);
                     radiusXField.setColumns(5);
                     radiusXField.setValue(sector.getxRadius());
 
-                    JLabel radiusYLabel = new JLabel("Введите Y радиус:");
+                    JLabel radiusYLabel = new JLabel("Y радиус:");
                     JFormattedTextField radiusYField = new JFormattedTextField(integerFormat);
                     radiusYField.setColumns(5);
                     radiusYField.setValue(sector.getyRadius());
@@ -133,12 +135,12 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                     editPanel.add(radiusYLabel);
                     editPanel.add(radiusYField, "wrap");
 
-                    JLabel startAngleLabel = new JLabel("Введите начальный угол:");
+                    JLabel startAngleLabel = new JLabel("Начальный угол:");
                     JFormattedTextField startAngleField = new JFormattedTextField(decimalFormat);
                     startAngleField.setColumns(5);
                     startAngleField.setValue(sector.getStartAngle());
 
-                    JLabel extentAngleLabel = new JLabel("Введите угол дуги:");
+                    JLabel extentAngleLabel = new JLabel("Угол дуги:");
                     JFormattedTextField extentAngleField = new JFormattedTextField(decimalFormat);
                     extentAngleField.setColumns(5);
                     extentAngleField.setValue(sector.getExtentAngle());
@@ -149,7 +151,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                     editPanel.add(extentAngleLabel);
                     editPanel.add(extentAngleField, "wrap");
 
-                    JLabel courseLabel = new JLabel("Введите курс:");
+                    JLabel courseLabel = new JLabel("Курс:");
                     JFormattedTextField courseField = new JFormattedTextField(decimalFormat);
                     courseField.setColumns(5);
                     courseField.setValue(sector.getCourse());
@@ -157,7 +159,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                     editPanel.add(courseLabel);
                     editPanel.add(courseField, "wrap");
 
-                    JLabel colorLabel = new JLabel("Выберите цвет:");
+                    JLabel colorLabel = new JLabel("Цвет:");
                     JComboBox<Color> colorComboBox = new JComboBox<>(new Color[]{Color.RED, Color.GREEN, Color.BLUE
                             , Color.YELLOW, Color.ORANGE, Color.CYAN, Color.MAGENTA, Color.PINK, Color.WHITE, Color.BLACK});
                     colorComboBox.setRenderer(new ColorComboBoxRenderer());
@@ -187,7 +189,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                         sector.setCourse(course);
                         sector.setColor(String.valueOf(color.getRGB()));
 
-                        SectorManager.updateSector(sector);
+                        sectorManager.update(sector);
 
                         doPrepare();
                         addFrame.dispose();
@@ -300,7 +302,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                         Sector sector = new Sector(name, lat, lon, radiusX, radiusY, startAngle, extentAngle, course
                                 , String.valueOf(color.getRGB()));
 
-                        SectorManager.addSector(sector);
+                        sectorManager.add(sector);
 
                         getList().add(sector);
                         doPrepare();
@@ -317,80 +319,25 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
 
             JButton removeButton = new JButton("Удалить все сектора");
             removeButton.addActionListener(actionEvent -> {
-                SectorManager.clear();
+                sectorManager.clear(Sector.class);
                 getList().clear();
                 doPrepare();
             });
             mainPanel.add(removeButton, "span, align center");
 
-            JButton saveSectorsToCSVButton = new JButton("Сохранить сектора в CSV");
-            saveSectorsToCSVButton.addActionListener(actionEvent -> {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-                fileChooser.setAcceptAllFileFilterUsed(false);
-                int ret = fileChooser.showDialog(null, "Сохранить файл");
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    File file = fileChooser.getSelectedFile();
-                    saveSectorsToCSV(file.getAbsolutePath());
-                }
-            });
+            JButton addFromCSVButton = getAddFromCSVButton(this);
 
-            mainPanel.add(saveSectorsToCSVButton, "span, align center");
+            mainPanel.add(addFromCSVButton, "span, align center");
 
-            JButton addSectorsFromCSVButton = new JButton("Добавить сектора из CSV");
-            addSectorsFromCSVButton.addActionListener(actionEvent -> {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-                fileChooser.setAcceptAllFileFilterUsed(false);
-                int ret = fileChooser.showDialog(null, "Открыть файл");
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    File file = fileChooser.getSelectedFile();
-                    addPointsFromCSV(file.getAbsolutePath());
-                }
-            });
+            JButton saveToCSVButton = getSaveToCSVButton();
 
-            mainPanel.add(addSectorsFromCSVButton, "span, align center");
+            mainPanel.add(saveToCSVButton, "span, align center");
         }
         return mainPanel;
     }
 
-    private static class ColorComboBoxRenderer extends DefaultListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                      boolean isSelected, boolean cellHasFocus) {
-            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-            if (value instanceof Color) {
-                Color color = (Color) value;
-                label.setBackground(color);
-                label.setForeground(getContrastColor(color));
-                label.setText(getColorName(color));
-            }
-
-            return label;
-        }
-
-        private Color getContrastColor(Color color) {
-            int luminance = (int) (0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue());
-            return luminance > 128 ? Color.BLACK : Color.WHITE;
-        }
-
-        private String getColorName(Color color) {
-            if (color.equals(Color.RED)) return "Red";
-            else if (color.equals(Color.GREEN)) return "Green";
-            else if (color.equals(Color.BLUE)) return "Blue";
-            else if (color.equals(Color.YELLOW)) return "Yellow";
-            else if (color.equals(Color.ORANGE)) return "Orange";
-            else if (color.equals(Color.CYAN)) return "Cyan";
-            else if (color.equals(Color.MAGENTA)) return "Magenta";
-            else if (color.equals(Color.PINK)) return "Pink";
-            else if (color.equals(Color.WHITE)) return "White";
-            else if (color.equals(Color.BLACK)) return "Black";
-            else return "";
-        }
-    }
-
-    private void addPointsFromCSV(String path) {
+    @Override
+    public void addFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
             String str;
             List<String> features = new ArrayList<>();
@@ -403,13 +350,13 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
                 if (features.isEmpty())
                     break;
 
-                Sector sector = getSectorsFromCSV(features);
+                Sector sector = getFromCSV(features);
 
                 features.clear();
                 sectors.add(sector);
                 sectorCounter++;
             }
-            SectorManager.addAllSectors(sectors);
+            sectorManager.addAll(sectors);
             getList().addAll(sectors);
             doPrepare();
             pcs.firePropertyChange("sectorCounter", sectorCounter - sectors.size(), sectorCounter);
@@ -418,7 +365,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
         }
     }
 
-    private static Sector getSectorsFromCSV(List<String> features) {
+    private static Sector getFromCSV(List<String> features) {
         String name = features.get(0);
         double latitudeCenter = Double.parseDouble(features.get(1));
         double longitudeCenter = Double.parseDouble(features.get(2));
@@ -434,7 +381,9 @@ public class SectorsLayer extends OMGraphicHandlerLayer {
         return sector;
     }
 
-    private void saveSectorsToCSV(String path) {
+    //TODO Добавить проверку расширения файла, добавить создание файла с расширением CSV
+    @Override
+    public void saveToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
             bufferedWriter.write("name;latitudeCenter;longitudeCenter;xRadius;yRadius;startAngle;extentAngle;course;color\n");
             for (OMGraphic omGraphic : getList())

@@ -5,22 +5,10 @@ import com.bbn.openmap.layer.OMGraphicHandlerLayer;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * The Polygons layer.
- */
 public class PolygonsLayer extends OMGraphicHandlerLayer {
-    /**
-     * The Panel.
-     */
     private JPanel panel = null;
-    /**
-     * The Add frame.
-     */
     private JFrame addFrame = new JFrame();
 
-    /**
-     * Instantiates a new Polygons layer.
-     */
     public Component getGUI() {
         if (panel == null) {
             GridBagLayout gridBag = new GridBagLayout();

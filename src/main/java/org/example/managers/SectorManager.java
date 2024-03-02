@@ -7,35 +7,10 @@ import org.hibernate.SessionFactory;
 
 import java.util.List;
 
-public class SectorManager {
-    private static final SessionFactory sessionFactory = OpenMap.getSessionFactory();
+public class SectorManager  implements Manager<Sector> {
 
-    public static void addSector(Sector sector) {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            session.save(sector);
-            session.getTransaction().commit();
-        }
-    }
-
-    public static void removeSector(Sector sector) {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            session.remove(sector);
-            session.getTransaction().commit();
-        }
-    }
-
-    public static void updateSector(Sector sector) {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            session.update(sector);
-            session.getTransaction().commit();
-        }
-    }
-
-    public static List<Sector> getAllSectors() {
-        try (Session session = sessionFactory.openSession()) {
+    public List<Sector> getAll() {
+        try (Session session = getSessionFactory().openSession()) {
             List<Sector> sectors = session.createQuery("from Sector", Sector.class).list();
             sectors.replaceAll(sector -> {
                 Sector newSector = new Sector(sector.getName(), sector.getLatitudeCenter(), sector.getLongitudeCenter()
@@ -46,24 +21,6 @@ public class SectorManager {
                 return newSector;
             });
             return sectors;
-        }
-    }
-
-    public static void addAllSectors(List<Sector> sectors) {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            for (Sector sector : sectors) {
-                session.save(sector);
-            }
-            session.getTransaction().commit();
-        }
-    }
-
-    public static void clear() {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            session.createQuery("delete from Sector").executeUpdate();
-            session.getTransaction().commit();
         }
     }
 }
