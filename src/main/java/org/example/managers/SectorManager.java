@@ -7,6 +7,7 @@ import java.util.List;
 
 public class SectorManager implements Manager<Sector> {
 
+    @Override
     public List<Sector> getAll() {
         try (Session session = getSessionFactory().openSession()) {
             List<Sector> sectors = session.createQuery("from Sector", Sector.class).list();

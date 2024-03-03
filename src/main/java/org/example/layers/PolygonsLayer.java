@@ -6,18 +6,24 @@ import com.bbn.openmap.layer.policy.BufferedImageRenderPolicy;
 import com.bbn.openmap.layer.policy.StandardPCPolicy;
 import com.bbn.openmap.omGraphics.OMGraphic;
 import com.bbn.openmap.omGraphics.OMGraphicList;
-import com.bbn.openmap.omGraphics.OMPoly;
 import net.miginfocom.swing.MigLayout;
 import org.example.managers.PolygonManager;
+import org.example.objects.Polygon;
+import org.example.tools.Buttons;
 import org.example.tools.ColorComboBoxRenderer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class PolygonsLayer extends OMGraphicHandlerLayer {
+public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
     private JPanel mainPanel = null;
     private JFrame addFrame = new JFrame();
-    private PolygonManager polygonManager = new PolygonManager();
+    private JFrame editFrame = new JFrame();
+    private final PolygonManager polygonManager = new PolygonManager();
 
     public PolygonsLayer() {
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
@@ -27,13 +33,7 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
 
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
-        double[] latLonPoints = {0, 0, 0, 10, 5, 15, 10, 10, 10, 0, 0, 0};
-
-        // Создаем экземпляр полигона
-        OMPoly polygon = new OMPoly(latLonPoints, OMPoly.DECIMAL_DEGREES, OMPoly.LINETYPE_RHUMB, 0);
-        polygon.setFillPaint(Color.RED);
-        polygon.setLinePaint(Color.BLACK);
-        omList.add(polygon);
+        omList.addAll(polygonManager.getAll());
         return omList;
     }
 
@@ -55,6 +55,92 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
         return true;
     }
 
+    @Override
+    public String getToolTipTextFor(OMGraphic omg) {
+        if (omg instanceof Polygon) {
+            Polygon polygon = (Polygon) omg;
+            return polygon.getName();
+        }
+        return super.getToolTipTextFor(omg);
+    }
+
+    @Override
+    public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
+        if (omg instanceof Polygon) {
+            List<Component> items = new ArrayList<>();
+
+            Polygon polygon = (Polygon) omg;
+
+            JMenuItem editItem = new JMenuItem("Изменить");
+            editItem.addActionListener(actionEvent -> {
+                if (!editFrame.isVisible()) {
+                    editFrame = new JFrame("Изменение полигона");
+                    editFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
+                    JPanel innerPanel = new JPanel(new MigLayout());
+
+                    JLabel nameLabel = new JLabel("Название:");
+                    JTextField textField = new JTextField(20);
+                    textField.setText(polygon.getName());
+
+                    innerPanel.add(nameLabel);
+                    innerPanel.add(textField, "wrap");
+
+                    JLabel latLonLabel = new JLabel("Координаты:");
+                    JTextField latLonField = new JTextField(20);
+                    latLonField.setText(polygon.getLatLon());
+
+                    innerPanel.add(latLonLabel);
+                    innerPanel.add(latLonField, "wrap");
+
+                    JLabel colorLabel = new JLabel("Цвет:");
+                    JComboBox<Color> colorComboBox = new JComboBox<>(new Color[]{Color.RED, Color.GREEN, Color.BLUE
+                            , Color.YELLOW, Color.ORANGE, Color.CYAN, Color.MAGENTA, Color.PINK, Color.WHITE, Color.BLACK});
+                    colorComboBox.setRenderer(new ColorComboBoxRenderer());
+                    colorComboBox.setSelectedItem(polygon.getFillPaint());
+
+                    innerPanel.add(colorLabel);
+                    innerPanel.add(colorComboBox, "wrap");
+
+                    JButton button = new JButton("Изменить");
+                    button.addActionListener(actionEvent1 -> {
+                        if (textField.getText().isEmpty() || latLonField.getText().equals("[]")) {
+                            JOptionPane.showMessageDialog(null, "Заполните все поля.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            polygon.setName(textField.getText());
+                            polygon.setLatLon(latLonField.getText());
+                            polygon.setColor(String.valueOf(((Color) colorComboBox.getSelectedItem()).getRGB()));
+
+                            polygonManager.update(polygon);
+
+                            doPrepare();
+                            editFrame.dispose();
+                        }
+                    });
+                    innerPanel.add(button, "span, align center");
+
+                    editFrame.add(innerPanel);
+                    editFrame.pack();
+                    editFrame.setLocationRelativeTo(null);
+                    editFrame.setVisible(true);
+                }
+            });
+
+            JMenuItem deleteItem = new JMenuItem("Удалить");
+            deleteItem.addActionListener(actionEvent -> {
+                polygonManager.remove(polygon);
+                getList().remove(polygon);
+                doPrepare();
+            });
+            items.add(editItem);
+            items.add(deleteItem);
+
+            return items;
+        }
+        return null;
+    }
+
+    @Override
     public Component getGUI() {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
@@ -63,7 +149,22 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
                 if (!addFrame.isVisible())
                     addPolygon();
             });
-            mainPanel.add(addButton);
+            mainPanel.add(addButton, "align center, wrap");
+
+            JButton clearButton = new JButton("Очистить");
+            clearButton.addActionListener(actionEvent -> {
+                polygonManager.clear(Polygon.class);
+                getList().clear();
+
+                doPrepare();
+            });
+            mainPanel.add(clearButton, "align center, wrap");
+
+            JButton addFromCSVButton = getAddFromCSVButton(this);
+            mainPanel.add(addFromCSVButton, "align center, wrap");
+
+            JButton saveToCSVButton = getSaveToCSVButton();
+            mainPanel.add(saveToCSVButton, "align center, wrap");
         }
         return mainPanel;
     }
@@ -102,10 +203,7 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
         innerPanel.add(colorLabel);
         innerPanel.add(colorComboBox, "wrap");
 
-        JButton button = new JButton("Добавить");
-        button.addActionListener(actionEvent -> {
-
-        });
+        JButton button = getAddButton(textField, latLonField, colorComboBox);
 
         innerPanel.add(button, "span, align center");
 
@@ -113,6 +211,28 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
         addFrame.pack();
         addFrame.setLocationRelativeTo(null);
         addFrame.setVisible(true);
+    }
+
+    private JButton getAddButton(JTextField textField, JTextField latLonField, JComboBox<Color> colorComboBox) {
+        JButton button = new JButton("Добавить");
+        button.addActionListener(actionEvent -> {
+            if (textField.getText().isEmpty() || latLonField.getText().equals("[]")) {
+                JOptionPane.showMessageDialog(null, "Заполните все поля.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            } else {
+                String name = textField.getText();
+                String latLon = latLonField.getText();
+                Color color = (Color) colorComboBox.getSelectedItem();
+                Polygon polygon = new Polygon(name, latLon, String.valueOf(color.getRGB()));
+                polygonManager.add(polygon);
+
+                getList().add(polygon);
+                doPrepare();
+
+                addFrame.dispose();
+            }
+
+        });
+        return button;
     }
 
     private static JButton getLatLonButton(JTextField latLonField) {
@@ -141,6 +261,50 @@ public class PolygonsLayer extends OMGraphicHandlerLayer {
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Введите корректное число формата double.", "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    @Override
+    public void addFromCSV(String path) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
+            String str;
+            List<String> features = new ArrayList<>();
+            List<Polygon> polygons = new ArrayList<>();
+            bufferedReader.readLine();
+            while (bufferedReader.ready()) {
+                str = bufferedReader.readLine();
+                features.addAll(Arrays.asList(str.split(";")));
+
+                if (features.isEmpty())
+                    break;
+
+                String name = features.get(0);
+                String latLon = features.get(1);
+                String color = features.get(2);
+
+                features.clear();
+                polygons.add(new Polygon(name, latLon, color));
+            }
+            polygonManager.addAll(polygons);
+            getList().addAll(polygons);
+            doPrepare();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void saveToCSV(String path) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
+            bufferedWriter.write("name;latLon;color\n");
+            for (OMGraphic omGraphic : getList()) {
+                if (omGraphic instanceof Polygon) {
+                    Polygon polygon = (Polygon) omGraphic;
+                    bufferedWriter.write(polygon.getName() + ";" + polygon.getLatLon() + ";" + polygon.getColor() + "\n");
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

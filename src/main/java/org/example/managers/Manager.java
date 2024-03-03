@@ -51,4 +51,6 @@ public interface Manager<T> {
             session.getTransaction().commit();
         }
     }
+
+    List<T> getAll();
 }

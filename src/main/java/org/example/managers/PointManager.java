@@ -7,6 +7,7 @@ import java.util.List;
 
 public class PointManager implements Manager<Point> {
 
+    @Override
     public List<Point> getAll() {
         try (Session session = getSessionFactory().openSession()) {
             List<Point> points = session.createQuery("from Point", Point.class).list();

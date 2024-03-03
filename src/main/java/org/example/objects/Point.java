@@ -1,6 +1,5 @@
 package org.example.objects;
 
-import com.bbn.openmap.omGraphics.OMRaster;
 import com.bbn.openmap.omGraphics.OMScalingIcon;
 
 import javax.persistence.*;

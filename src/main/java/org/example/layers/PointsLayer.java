@@ -147,6 +147,7 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return items;
     }
 
+    @Override
     public Component getGUI() {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
@@ -160,6 +161,17 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
 
             JButton addButton = getAddButton();
             mainPanel.add(addButton, "wrap, span, align center");
+
+            JButton clearButton = new JButton("Очистить");
+            clearButton.addActionListener(actionEvent -> {
+                pointManager.clear(Point.class);
+                getList().clear();
+                pointCounter = 0;
+                pcs.firePropertyChange("pointCounter", pointCounter + 1, pointCounter);
+
+                doPrepare();
+            });
+            mainPanel.add(clearButton, "wrap, span, align center");
 
             JButton addPointsFromCSVButton = getAddFromCSVButton(this);
             mainPanel.add(addPointsFromCSVButton, "wrap, span, align center");

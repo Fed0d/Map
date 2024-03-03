@@ -23,10 +23,11 @@ public class Polygon extends OMPoly {
     public Polygon() {
     }
 
-    public Polygon(String name, double[] latLon, String color) {
-        super(latLon, OMPoly.DECIMAL_DEGREES, OMPoly.LINETYPE_RHUMB, 0);
+    public Polygon(String name, String latLon, String color) {
+        super(parseStringToDouble(latLon), OMPoly.DECIMAL_DEGREES, OMPoly.LINETYPE_STRAIGHT);
+        setFillPaint(Color.decode(color));
         this.name = name;
-        this.latLon = Arrays.toString(latLon);
+        this.latLon = latLon;
         this.color = color;
     }
 
@@ -46,16 +47,13 @@ public class Polygon extends OMPoly {
         this.name = name;
     }
 
-    public double[] getLatLon() {
-        String[] latLonString = latLon.substring(1, latLon.length() - 1).split(", ");
-        return Arrays.stream(latLonString)
-                .mapToDouble(Double::parseDouble)
-                .toArray();
+    public String getLatLon() {
+        return latLon;
     }
 
-    public void setLatLon(double[] latLon) {
-        this.latLon = Arrays.toString(latLon);
-        setLocation(latLon, OMPoly.DECIMAL_DEGREES);
+    public void setLatLon(String latLon) {
+        this.latLon = latLon;
+        setLocation(parseStringToDouble(latLon), OMPoly.DECIMAL_DEGREES);
     }
 
     public String getColor() {
@@ -65,5 +63,12 @@ public class Polygon extends OMPoly {
     public void setColor(String color) {
         this.color = color;
         setFillPaint(Color.decode(color));
+    }
+
+    public static double[] parseStringToDouble(String str) {
+        String[] latLonString = str.substring(1, str.length() - 1).split(", ");
+        return Arrays.stream(latLonString)
+                .mapToDouble(Double::parseDouble)
+                .toArray();
     }
 }

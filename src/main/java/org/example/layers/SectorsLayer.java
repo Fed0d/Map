@@ -210,6 +210,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         return items;
     }
 
+    @Override
     public Component getGUI() {
         if (mainPanel == null) {
             mainPanel = new JPanel(new MigLayout());
@@ -322,7 +323,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
             });
             mainPanel.add(addButton, "span, align center");
 
-            JButton removeButton = new JButton("Удалить все сектора");
+            JButton removeButton = new JButton("Очистить");
             removeButton.addActionListener(actionEvent -> {
                 sectorManager.clear(Sector.class);
                 getList().clear();
@@ -385,7 +386,6 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
                 , course, color);
     }
 
-    //TODO Добавить проверку расширения файла, добавить создание файла с расширением CSV
     @Override
     public void saveToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
