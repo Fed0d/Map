@@ -135,6 +135,7 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
 
                     editFrame.add(editPanel);
                     editFrame.pack();
+                    editFrame.setLocationRelativeTo(null);
                     editFrame.setResizable(false);
                     editFrame.setVisible(true);
                 }
@@ -161,11 +162,9 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
             mainPanel.add(addButton, "wrap, span, align center");
 
             JButton addPointsFromCSVButton = getAddFromCSVButton(this);
-
             mainPanel.add(addPointsFromCSVButton, "wrap, span, align center");
 
             JButton savePointsToCSVButton = getSaveToCSVButton();
-
             mainPanel.add(savePointsToCSVButton, "wrap, span, align center");
         }
         return mainPanel;
@@ -227,6 +226,7 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
 
                 addFrame.add(addPanel);
                 addFrame.pack();
+                addFrame.setLocationRelativeTo(null);
                 addFrame.setResizable(false);
                 addFrame.setVisible(true);
             }

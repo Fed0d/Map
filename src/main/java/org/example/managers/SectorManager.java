@@ -1,13 +1,11 @@
 package org.example.managers;
 
 import org.example.objects.Sector;
-import org.example.startApp.OpenMap;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 import java.util.List;
 
-public class SectorManager  implements Manager<Sector> {
+public class SectorManager implements Manager<Sector> {
 
     public List<Sector> getAll() {
         try (Session session = getSessionFactory().openSession()) {

@@ -1,13 +1,11 @@
 package org.example.managers;
 
 import org.example.objects.Point;
-import org.example.startApp.OpenMap;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 import java.util.List;
 
-public class PointManager implements Manager<Point>{
+public class PointManager implements Manager<Point> {
 
     public List<Point> getAll() {
         try (Session session = getSessionFactory().openSession()) {

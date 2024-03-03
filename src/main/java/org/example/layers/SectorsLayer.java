@@ -187,6 +187,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
                         sector.setStartAngle(startAngle);
                         sector.setExtentAngle(extentAngle);
                         sector.setCourse(course);
+                        assert color != null;
                         sector.setColor(String.valueOf(color.getRGB()));
 
                         sectorManager.update(sector);
@@ -198,6 +199,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
 
                     editFrame.add(editPanel);
                     editFrame.pack();
+                    editFrame.setLocationRelativeTo(null);
                     editFrame.setResizable(false);
                     editFrame.setVisible(true);
                 }
@@ -299,6 +301,7 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
                         double course = Double.parseDouble(courseField.getText());
                         Color color = (Color) colorComboBox.getSelectedItem();
 
+                        assert color != null;
                         Sector sector = new Sector(name, lat, lon, radiusX, radiusY, startAngle, extentAngle, course
                                 , String.valueOf(color.getRGB()));
 
@@ -309,8 +312,10 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
                         addFrame.dispose();
                     });
                     addPanel.add(addSectorButton, "span, align center");
+
                     addFrame.add(addPanel);
                     addFrame.pack();
+                    addFrame.setLocationRelativeTo(null);
                     addFrame.setResizable(false);
                     addFrame.setVisible(true);
                 }
@@ -376,9 +381,8 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         double course = Double.parseDouble(features.get(7));
         String color = features.get(8);
 
-        Sector sector = new Sector(name, latitudeCenter, longitudeCenter, xRadius, yRadius, startAngle, extentAngle
+        return new Sector(name, latitudeCenter, longitudeCenter, xRadius, yRadius, startAngle, extentAngle
                 , course, color);
-        return sector;
     }
 
     //TODO Добавить проверку расширения файла, добавить создание файла с расширением CSV

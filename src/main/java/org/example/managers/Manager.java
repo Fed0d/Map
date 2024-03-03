@@ -7,8 +7,8 @@ import org.hibernate.SessionFactory;
 import java.util.List;
 
 public interface Manager<T> {
+
     default SessionFactory getSessionFactory() {
-        // Верните ваш объект SessionFactory здесь
         return OpenMap.getSessionFactory();
     }
 
