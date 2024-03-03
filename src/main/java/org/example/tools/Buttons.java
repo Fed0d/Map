@@ -6,7 +6,16 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 
+/**
+ * Интерфейс для создания кнопок
+ */
 public interface Buttons {
+    /**
+     * Создание кнопки "Добавить из CSV"
+     *
+     * @param omGraphicHandlerLayer слой для добавления объектов
+     * @return кнопка "Добавить из CSV"
+     */
     default JButton getAddFromCSVButton(OMGraphicHandlerLayer omGraphicHandlerLayer) {
         JButton addFromCSVButton = new JButton("Добавить из CSV");
         addFromCSVButton.addActionListener(actionEvent -> {
@@ -23,8 +32,18 @@ public interface Buttons {
         return addFromCSVButton;
     }
 
+    /**
+     * Добавление объектов из CSV
+     *
+     * @param path путь к файлу
+     */
     void addFromCSV(String path);
 
+    /**
+     * Создание кнопки "Сохранить в CSV"
+     *
+     * @return кнопка "Сохранить в CSV"
+     */
     default JButton getSaveToCSVButton() {
         JButton saveToCSVButton = new JButton("Сохранить в CSV");
         saveToCSVButton.addActionListener(actionEvent -> {
@@ -40,5 +59,10 @@ public interface Buttons {
         return saveToCSVButton;
     }
 
+    /**
+     * Сохранение объектов в CSV
+     *
+     * @param path путь к файлу
+     */
     void saveToCSV(String path);
 }

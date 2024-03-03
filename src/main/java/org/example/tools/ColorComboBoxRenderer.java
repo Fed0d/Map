@@ -2,7 +2,22 @@ package org.example.tools;
 
 import javax.swing.*;
 import java.awt.*;
+
+/**
+ * A renderer for color combo boxes.
+ */
 public class ColorComboBoxRenderer extends DefaultListCellRenderer {
+
+    /**
+     * Возвращает компонент для отображения в списке.
+     *
+     * @param list         список
+     * @param value        значение
+     * @param index        индекс
+     * @param isSelected   выбран ли элемент
+     * @param cellHasFocus фокус на ячейке
+     * @return компонент для отображения в списке
+     */
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                   boolean isSelected, boolean cellHasFocus) {
@@ -18,11 +33,23 @@ public class ColorComboBoxRenderer extends DefaultListCellRenderer {
         return label;
     }
 
+    /**
+     * Возвращает контрастный цвет для данного цвета.
+     *
+     * @param color цвет
+     * @return контрастный цвет
+     */
     private Color getContrastColor(Color color) {
         int luminance = (int) (0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue());
         return luminance > 128 ? Color.BLACK : Color.WHITE;
     }
 
+    /**
+     * Возвращает имя цвета.
+     *
+     * @param color цвет
+     * @return имя цвета
+     */
     private String getColorName(Color color) {
         if (color.equals(Color.RED)) return "Red";
         else if (color.equals(Color.GREEN)) return "Green";
