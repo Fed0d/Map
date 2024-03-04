@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * A renderer for color combo boxes.
+ * Класс для отображения цветов в выпадающем списке.
  */
 public class ColorComboBoxRenderer extends DefaultListCellRenderer {
 
@@ -45,10 +45,10 @@ public class ColorComboBoxRenderer extends DefaultListCellRenderer {
     }
 
     /**
-     * Возвращает имя цвета.
+     * Возвращает название цвета.
      *
      * @param color цвет
-     * @return имя цвета
+     * @return название цвета
      */
     private String getColorName(Color color) {
         if (color.equals(Color.RED)) return "Red";

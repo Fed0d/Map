@@ -5,8 +5,16 @@ import org.hibernate.Session;
 
 import java.util.List;
 
+/**
+ * Менеджер для работы с секторами.
+ */
 public class SectorManager implements Manager<Sector> {
 
+    /**
+     * Получение всех секторов из базы данных.
+     *
+     * @return список всех секторов
+     */
     @Override
     public List<Sector> getAll() {
         try (Session session = getSessionFactory().openSession()) {

@@ -15,32 +15,27 @@ import javax.swing.*;
 import java.io.IOException;
 
 /**
- * A simple OpenMap application.
- *
- * @author Dmitriy Samorodov
+ * Класс для отображения карты.
  */
 public class OpenMap {
     /**
-     * The map panel.
+     * Панель карты.
      */
     private MapPanel mapPanel;
     /**
-     * The session factory.
+     * Фабрика сессий.
      */
     private static SessionFactory sessionFactory;
+
     /**
-     * Get the session factory.
-     *
-     * @return the session factory
+     * Получение фабрики сессий.
      */
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
     /**
-     * The main method.
-     *
-     * @param args the command line arguments
+     * Точка входа в программу.
      */
     public static void main(String[] args) {
         sessionFactory = new Configuration()
@@ -51,27 +46,22 @@ public class OpenMap {
         SwingUtilities.invokeLater(() -> create("./src/main/resources/map.properties").showInFrame());
     }
 
-    /***
-     * Create an OpenMap instance with the given property handler.
-     * @param propertyHandler the property handler to use, or null if none
+    /**
+     * Создание OpenMap с заданным property handler.
      */
     private OpenMap(PropertyHandler propertyHandler) {
         configureMapPanel(propertyHandler);
     }
 
-    /***
-     * Create an OpenMap instance with the given properties file.
-     * @param propertiesFile the properties file to use
-     * @return the OpenMap instance
+    /**
+     * Создание OpenMap с заданным properties file.
      */
     public static OpenMap create(String propertiesFile) {
         return new OpenMap(configurePropertyHandler(propertiesFile));
     }
 
-    /***
-     * Configure the property handler with the given properties file.
-     * @param propertiesFile the properties file to use
-     * @return the property handler
+    /**
+     * Конфигурация property handler.
      */
     private static PropertyHandler configurePropertyHandler(String propertiesFile) {
         try {
@@ -82,16 +72,14 @@ public class OpenMap {
     }
 
     /**
-     * Get the map panel.
-     *
-     * @return the map panel
+     * Получение обработчика карты.
      */
     public MapHandler getMapHandler() {
         return mapPanel.getMapHandler();
     }
 
     /**
-     * Show the map in a frame.
+     * Отображение карты во фрейме.
      */
     private void showInFrame() {
         MapHandler mapHandler = getMapHandler();
@@ -100,9 +88,7 @@ public class OpenMap {
     }
 
     /**
-     * Configure the map panel with the given property handler.
-     *
-     * @param propertyHandler the property handler to use, or null if none
+     * Конфигурация панели карты.
      */
     private void configureMapPanel(PropertyHandler propertyHandler) {
         mapPanel = new OverlayMapPanel(propertyHandler, false);

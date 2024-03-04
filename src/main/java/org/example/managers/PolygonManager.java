@@ -5,8 +5,16 @@ import org.hibernate.Session;
 
 import java.util.List;
 
+/**
+ * Менеджер для работы с полигонами.
+ */
 public class PolygonManager implements Manager<Polygon> {
 
+    /**
+     * Получение всех полигонов из базы данных.
+     *
+     * @return список всех полигонов
+     */
     @Override
     public List<Polygon> getAll() {
         try (Session session = getSessionFactory().openSession()) {

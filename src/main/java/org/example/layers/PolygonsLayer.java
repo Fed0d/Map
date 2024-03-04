@@ -19,24 +19,52 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Класс слоя для отображения полигонов.
+ */
 public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
+    /**
+     * Панель для отображения кнопок.
+     */
     private JPanel mainPanel = null;
+    /**
+     * Фрейм для добавления полигона.
+     */
     private JFrame addFrame = new JFrame();
+    /**
+     * Фрейм для изменения полигона.
+     */
     private JFrame editFrame = new JFrame();
+    /**
+     * Менеджер для работы с полигонами.
+     */
     private final PolygonManager polygonManager = new PolygonManager();
 
+    /**
+     * Создание слоя для отображения полигонов.
+     */
     public PolygonsLayer() {
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
         setRenderPolicy(new BufferedImageRenderPolicy());
         setMouseModeIDsForEvents(new String[]{SelectMouseMode.modeID});
     }
 
+    /**
+     * Инициализация слоя.
+     *
+     * @return список полигонов
+     */
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
         omList.addAll(polygonManager.getAll());
         return omList;
     }
 
+    /**
+     * Подготовка слоя.
+     *
+     * @return список полигонов
+     */
     @Override
     public synchronized OMGraphicList prepare() {
         OMGraphicList list = getList();
@@ -47,14 +75,32 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         return list;
     }
 
+    /**
+     * Показывает, можно ли выделить полигон.
+     *
+     * @param omg полигон
+     * @return true, если можно выделить полигон, иначе - false
+     */
     public boolean isHighlightable(OMGraphic omg) {
         return true;
     }
 
+    /**
+     * Показывает, можно ли выбрать полигон.
+     *
+     * @param omg полигон
+     * @return true, если можно выбрать полигон, иначе - false
+     */
     public boolean isSelectable(OMGraphic omg) {
         return true;
     }
 
+    /**
+     * Получение названия полигона.
+     *
+     * @param omg полигон
+     * @return название полигона
+     */
     @Override
     public String getToolTipTextFor(OMGraphic omg) {
         if (omg instanceof Polygon) {
@@ -64,6 +110,12 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         return super.getToolTipTextFor(omg);
     }
 
+    /**
+     * Получение списка компонентов для меню.
+     *
+     * @param omg полигон
+     * @return список компонентов
+     */
     @Override
     public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
         if (omg instanceof Polygon) {
@@ -140,6 +192,11 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         return null;
     }
 
+    /**
+     * Получение панели с кнопками.
+     *
+     * @return панель с кнопками
+     */
     @Override
     public Component getGUI() {
         if (mainPanel == null) {
@@ -169,6 +226,9 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         return mainPanel;
     }
 
+    /**
+     * Добавление полигона.
+     */
     private void addPolygon() {
         addFrame = new JFrame("Добавление полигона");
         addFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -213,6 +273,14 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         addFrame.setVisible(true);
     }
 
+    /**
+     * Получение кнопки добавления полигона.
+     *
+     * @param textField     текстовое поле для названия
+     * @param latLonField   текстовое поле для координат
+     * @param colorComboBox комбобокс для цвета
+     * @return кнопка добавления полигона
+     */
     private JButton getAddButton(JTextField textField, JTextField latLonField, JComboBox<Color> colorComboBox) {
         JButton button = new JButton("Добавить");
         button.addActionListener(actionEvent -> {
@@ -235,6 +303,12 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         return button;
     }
 
+    /**
+     * Получение кнопки добавления координат.
+     *
+     * @param latLonField текстовое поле для координат
+     * @return кнопка добавления координат
+     */
     private static JButton getLatLonButton(JTextField latLonField) {
         JButton latLonButton = new JButton("+");
         latLonButton.addActionListener(actionEvent -> {
@@ -251,6 +325,12 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         return latLonButton;
     }
 
+    /**
+     * Показывает диалоговое окно для ввода double.
+     *
+     * @param message сообщение
+     * @return double
+     */
     private static Double showDoubleInputDialog(String message) {
         while (true) {
             try {
@@ -264,6 +344,11 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         }
     }
 
+    /**
+     * Добавление полигонов из CSV файла.
+     *
+     * @param path путь к файлу
+     */
     @Override
     public void addFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
@@ -293,6 +378,11 @@ public class PolygonsLayer extends OMGraphicHandlerLayer implements Buttons {
         }
     }
 
+    /**
+     * Сохранение полигонов в CSV файл.
+     *
+     * @param path путь к файлу
+     */
     @Override
     public void saveToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {

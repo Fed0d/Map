@@ -5,8 +5,16 @@ import org.hibernate.Session;
 
 import java.util.List;
 
+/**
+ * Менеджер для работы с точками.
+ */
 public class PointManager implements Manager<Point> {
 
+    /**
+     * Получение всех точек в базе данных.
+     *
+     * @return список всех точек
+     */
     @Override
     public List<Point> getAll() {
         try (Session session = getSessionFactory().openSession()) {

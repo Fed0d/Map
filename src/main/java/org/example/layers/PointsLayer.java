@@ -21,21 +21,53 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Класс представляющий слой точек.
+ */
 public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
+    /**
+     * Главная панель.
+     */
     private JPanel mainPanel = null;
+    /**
+     * Фрейм для добавления точки.
+     */
     private JFrame addFrame = new JFrame();
+    /**
+     * Фрейм для изменения точки.
+     */
     private JFrame editFrame = new JFrame();
+    /**
+     * Формат для отображения координат.
+     */
     private final DecimalFormat decimalFormat = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
+    /**
+     * Счётчик точек.
+     */
     private int pointCounter = 0;
+    /**
+     * Поддержка свойств.
+     */
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(PointsLayer.class);
+    /**
+     * Менеджер точек.
+     */
     private final PointManager pointManager = new PointManager();
 
+    /**
+     * Создание слоя точек.
+     */
     public PointsLayer() {
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
         setRenderPolicy(new BufferedImageRenderPolicy());
         setMouseModeIDsForEvents(new String[]{SelectMouseMode.modeID});
     }
 
+    /**
+     * Инициализация слоя.
+     *
+     * @return список точек
+     */
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
         List<Point> points = pointManager.getAll();
@@ -44,6 +76,11 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return omList;
     }
 
+    /**
+     * Получение списка точек.
+     *
+     * @return список точек
+     */
     @Override
     public synchronized OMGraphicList prepare() {
         OMGraphicList list = getList();
@@ -54,14 +91,32 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return list;
     }
 
+    /**
+     * Показывает, можно ли выделить точку.
+     *
+     * @param omg точка
+     * @return true
+     */
     public boolean isHighlightable(OMGraphic omg) {
         return true;
     }
 
+    /**
+     * Показывает, можно ли выбрать точку.
+     *
+     * @param omg точка
+     * @return true
+     */
     public boolean isSelectable(OMGraphic omg) {
         return true;
     }
 
+    /**
+     * Получение текста подсказки для точки.
+     *
+     * @param omg точка
+     * @return название точки
+     */
     @Override
     public String getToolTipTextFor(OMGraphic omg) {
         if (omg instanceof Point)
@@ -69,6 +124,12 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return super.getToolTipTextFor(omg);
     }
 
+    /**
+     * Получение списка компонентов для меню точки.
+     *
+     * @param omg точка
+     * @return список компонентов
+     */
     @Override
     public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
         List<Component> items = new ArrayList<>();
@@ -147,6 +208,11 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return items;
     }
 
+    /**
+     * Получение панели с кнопками.
+     *
+     * @return панель с кнопками
+     */
     @Override
     public Component getGUI() {
         if (mainPanel == null) {
@@ -182,6 +248,11 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return mainPanel;
     }
 
+    /**
+     * Получение кнопки добавления точек из CSV.
+     *
+     * @return кнопка
+     */
     private JButton getAddButton() {
         JButton addButton = new JButton("Добавить точку");
         addButton.addActionListener(actionEvent -> {
@@ -246,6 +317,11 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         return addButton;
     }
 
+    /**
+     * Добавление точек из CSV.
+     *
+     * @param path путь к файлу
+     */
     @Override
     public void addFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
@@ -278,6 +354,11 @@ public class PointsLayer extends OMGraphicHandlerLayer implements Buttons {
         }
     }
 
+    /**
+     * Сохранение точек в CSV.
+     *
+     * @param path путь к файлу
+     */
     @Override
     public void saveToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {

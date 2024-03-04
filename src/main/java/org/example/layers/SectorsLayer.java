@@ -22,22 +22,57 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Класс, представляющий слой секторов.
+ */
 public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
+    /**
+     * Главная панель.
+     */
     private JPanel mainPanel = null;
+    /**
+     * Фрейм для добавления сектора.
+     */
     private JFrame addFrame = new JFrame();
+    /**
+     * Фрейм для изменения сектора.
+     */
     private JFrame editFrame = new JFrame();
+    /**
+     * Формат для отображения десятичных чисел.
+     */
     private final DecimalFormat decimalFormat = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
+    /**
+     * Формат для отображения целых чисел.
+     */
     private final DecimalFormat integerFormat = new DecimalFormat("#");
+    /**
+     * Счётчик секторов.
+     */
     private int sectorCounter = 0;
+    /**
+     * Поддержка свойств.
+     */
     private static final PropertyChangeSupport pcs = new PropertyChangeSupport(SectorsLayer.class);
+    /**
+     * Менеджер секторов.
+     */
     private final SectorManager sectorManager = new SectorManager();
 
+    /**
+     * Конструктор по умолчанию.
+     */
     public SectorsLayer() {
         setProjectionChangePolicy(new StandardPCPolicy(this, true));
         setRenderPolicy(new BufferedImageRenderPolicy());
         setMouseModeIDsForEvents(new String[]{SelectMouseMode.modeID});
     }
 
+    /**
+     * Инициализация слоя.
+     *
+     * @return список секторов
+     */
     public OMGraphicList init() {
         OMGraphicList omList = new OMGraphicList();
         List<Sector> sectors = sectorManager.getAll();
@@ -46,6 +81,11 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         return omList;
     }
 
+    /**
+     * Подготовка слоя.
+     *
+     * @return список секторов
+     */
     @Override
     public synchronized OMGraphicList prepare() {
         OMGraphicList list = getList();
@@ -56,16 +96,28 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         return list;
     }
 
+    /**
+     * Показывает, можно ли выбрать объект.
+     */
     @Override
     public boolean isSelectable(OMGraphic omg) {
         return true;
     }
 
+    /**
+     * Показывает, можно ли выделить объект.
+     */
     @Override
     public boolean isHighlightable(OMGraphic omg) {
         return true;
     }
 
+    /**
+     * Получение текста подсказки для объекта.
+     *
+     * @param omg объект
+     * @return текст подсказки
+     */
     @Override
     public String getToolTipTextFor(OMGraphic omg) {
         if (omg instanceof Sector)
@@ -73,6 +125,9 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         return super.getToolTipTextFor(omg);
     }
 
+    /**
+     * Получение списка компонентов для контекстного меню объекта.
+     */
     @Override
     public List<Component> getItemsForOMGraphicMenu(OMGraphic omg) {
         List<Component> items = new ArrayList<>();
@@ -210,6 +265,9 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         return items;
     }
 
+    /**
+     * Получение главной панели.
+     */
     @Override
     public Component getGUI() {
         if (mainPanel == null) {
@@ -342,6 +400,11 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         return mainPanel;
     }
 
+    /**
+     * Добавление сектора из CSV-файла.
+     *
+     * @param path путь к файлу
+     */
     @Override
     public void addFromCSV(String path) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
@@ -371,6 +434,12 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
         }
     }
 
+    /**
+     * Получение сектора из CSV-файла.
+     *
+     * @param features список параметров
+     * @return сектор
+     */
     private static Sector getFromCSV(List<String> features) {
         String name = features.get(0);
         double latitudeCenter = Double.parseDouble(features.get(1));
@@ -386,6 +455,11 @@ public class SectorsLayer extends OMGraphicHandlerLayer implements Buttons {
                 , course, color);
     }
 
+    /**
+     * Сохранение секторов в CSV-файл.
+     *
+     * @param path путь к файлу
+     */
     @Override
     public void saveToCSV(String path) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
